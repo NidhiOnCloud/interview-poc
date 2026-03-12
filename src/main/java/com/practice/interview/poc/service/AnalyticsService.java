@@ -19,7 +19,7 @@ public class AnalyticsService {
      * Run this method non-transactionally
      * So database behavior becomes: Auto-commit mode, whether this method throws an exception or not.
      */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) //Always non-transactional
     public void publishEvent() {
         repo.save(new LoanEvent("Analytics event stored"));
         System.out.println(

@@ -71,4 +71,14 @@ class TransactionPropagationTest {
         List<OrderEvent> events = repo.findAll();
         assertEquals(0, events.size());
     }
+
+    @Test
+    void verifyFailedOrderWhenPaymentSuccess() {
+        assertThrows(RuntimeException.class, () -> {
+            orderService.placeFailedOrder();
+        });
+        List<OrderEvent> events = repo.findAll();
+        System.out.println("Total events: " + events.size());
+        assertEquals(0, events.size());
+    }
 }

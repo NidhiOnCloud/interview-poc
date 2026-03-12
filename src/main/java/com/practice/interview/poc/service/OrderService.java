@@ -41,4 +41,11 @@ public class OrderService {
             auditService.logSameTxn("Payment failed");
         }
     }
+    @Transactional
+    public void placeFailedOrder() {
+        repo.save(new OrderEvent("Order Created"));
+        paymentService.chargeWhenNoPaymentGatewayProblem(); // inner success, txn yet to be committed.
+        System.out.println("**************** FAILED : Placing an order ********************");
+        throw new RuntimeException("Order failed..."); // txn has exception, both payment & orders are rolled back.
+    }
 }

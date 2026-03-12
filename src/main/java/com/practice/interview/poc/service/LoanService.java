@@ -17,15 +17,21 @@ public class LoanService {
 
     @Transactional
     public void applyLoan() {
-        repo.save(new LoanEvent("Loan request created"));
+        repo.save(new LoanEvent("Loan request created")); //suspends TXN and publishes event non-transactionally.
+        analytics.publishEvent();
+    }
+
+    @Transactional
+    public void applyLoanWithException() {
+        repo.save(new LoanEvent("Loan request created")); //suspends TXN and publishes event non-transactionally.
         analytics.publishEvent();
         throw new RuntimeException("Loan processing failure"); // Because an exception escaped the transactional method,
-                                                                // no UnexpectedRollbackException silently thrown by spring.
+        // no UnexpectedRollbackException silently thrown by spring.
     }
 
     @Transactional
     public void applyLoanWithFailureInAnalytics() {
-        repo.save(new LoanEvent("Loan request created"));
+        repo.save(new LoanEvent("Loan request created")); //suspends TXN and publishes event non-transactionally.
         analytics.publishEventWithAnException();
         throw new RuntimeException("Loan processing failure"); // Because an exception escaped the transactional method,
                                                                 // no UnexpectedRollbackException silently thrown by spring.
