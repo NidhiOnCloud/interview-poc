@@ -1,31 +1,27 @@
 package com.practice.interview.poc.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.AllArgsConstructor;
 
-@Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Table(name = "payments", uniqueConstraints = @UniqueConstraint(columnNames = "idempotency_key"))
+@Entity
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
 
-    @Column(name = "idempotency_key", nullable = false, unique = true)
-    private String idempotencyKey;
+    private String accountNumber;
 
     private Double amount;
-    private String userEmail;
-    private String type;
-    private String status;
 
+    private String status;
 }
