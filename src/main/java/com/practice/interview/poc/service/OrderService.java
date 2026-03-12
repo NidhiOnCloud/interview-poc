@@ -48,4 +48,13 @@ public class OrderService {
         System.out.println("**************** FAILED : Placing an order ********************");
         throw new RuntimeException("Order failed..."); // txn has exception, both payment & orders are rolled back.
     }
+    @Transactional
+    public void placeOrderWhenPaymentGateWayIsDownWithAuditFailure() {
+        repo.save(new OrderEvent("Order Created"));
+        try {
+            paymentService.chargePayment();
+        } catch (Exception e) {
+            auditService.logFailed("Payment failed");
+        }
+    }
 }

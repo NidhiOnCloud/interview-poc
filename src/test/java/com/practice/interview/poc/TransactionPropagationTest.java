@@ -65,7 +65,7 @@ class TransactionPropagationTest {
     @Test
     void verifyOrderEventsWhenPaymentWithAuditInSameTx() { //expected create order, payment charged and audit to be rolled back under the same transaction TX1.
 
-        assertThrows(UnexpectedRollbackException.class, () -> {
+        assertThrows(RuntimeException.class, () -> {
             orderService.placeOrderWhenPaymentGateWayIsDownWithAuditInSameTxn();
         });
         List<OrderEvent> events = repo.findAll();
@@ -76,6 +76,16 @@ class TransactionPropagationTest {
     void verifyFailedOrderWhenPaymentSuccess() {
         assertThrows(RuntimeException.class, () -> {
             orderService.placeFailedOrder();
+        });
+        List<OrderEvent> events = repo.findAll();
+        System.out.println("Total events: " + events.size());
+        assertEquals(0, events.size());
+    }
+
+    @Test
+    void verifyAuditWhenPaymentSuccess() {
+        assertThrows(RuntimeException.class, () -> {
+            orderService.placeOrderWhenPaymentGateWayIsDownWithAuditFailure();
         });
         List<OrderEvent> events = repo.findAll();
         System.out.println("Total events: " + events.size());

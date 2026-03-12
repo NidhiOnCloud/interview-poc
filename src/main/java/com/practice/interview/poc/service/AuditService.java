@@ -24,4 +24,10 @@ public class AuditService {
         System.out.println("AUDIT: "+msg);
         repo.save(new OrderEvent("AUDIT: " + msg));
     }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logFailed(String msg) {
+        System.out.println("AUDIT: "+msg);
+        repo.save(new OrderEvent("AUDIT: " + msg));
+        throw new RuntimeException("AUDIT: Failed due to runtime issue");
+    }
 }
