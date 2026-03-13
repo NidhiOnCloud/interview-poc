@@ -19,6 +19,9 @@ public class Account {
     private String name;
     private int balance;
 
+    /*
+     * update only if row version has not changed
+     */
     @Version
     private Long version;
 

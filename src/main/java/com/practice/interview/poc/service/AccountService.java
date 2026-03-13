@@ -17,11 +17,19 @@ public class AccountService {
         this.repo = repo;
     }
 
+    /**
+     * READ_COMMITTED → always latest committed value committed by other transaction.
+     * A transaction can only read(see) committed data as latest from other transactions.
+     */
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public int readBalance(Long id) {
         return repo.findById(id).orElseThrow().getBalance();
     }
 
+    /**
+     * REPEATABLE_READ guarantees that once a transaction reads a row, it will always see the same value for that row during the entire transaction,
+     * even if another transaction updates and commits that row meanwhile.
+     */
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public int[] repeatableRead(Long id) throws InterruptedException {
         System.out.println("Reading repeated...");
