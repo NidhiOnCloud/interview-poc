@@ -21,17 +21,11 @@ public class SettlementBatchService {
     public void runSettlementBatch() {
 
         List<Payment> payments = paymentRepository.findAll();
-
         for (Payment payment : payments) {
-
             try {
-
                 processor.processPayment(payment);
-
             } catch (Exception e) {
-
                 System.out.println("Payment failed: " + payment.getId());
-
                 payment.setStatus("FAILED");
                 paymentRepository.save(payment);
             }
