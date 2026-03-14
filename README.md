@@ -67,3 +67,43 @@ T1:  SELECT balance > 100 → 2 rows
 T2:                 INSERT balance=300
 T2:                 COMMIT
 T1:  SELECT balance > 100 → 3 rows
+
+### SERIALIZABLE
+Simple Example
+
+Assume two transactions:
+
+Without SERIALIZABLE
+T1: read accounts with balance > 100 → 1 row
+
+T2: insert new account with balance 200
+commit
+
+T1: read again → 2 rows   (phantom row)
+
+The result changes inside the same transaction.
+
+With SERIALIZABLE
+T1: read accounts with balance > 100 → 1 row
+
+T2: tries to insert → must wait
+
+T1: read again → still 1 row
+commit
+
+T2: insert happens after T1 commits
+
+Now the system behaves as if T1 finished before T2 started.
+
+One-Line Definition (Best for Interviews)
+
+SERIALIZABLE guarantees that concurrent transactions produce the same result as if they were executed sequentially.
+
+What It Prevents
+
+SERIALIZABLE prevents all anomalies:
+
+Problem	Prevented
+Dirty Read	✅
+Non-Repeatable Read	✅
+Phantom Read	✅

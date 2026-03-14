@@ -2,6 +2,8 @@ package com.practice.interview.poc.service;
 
 import com.practice.interview.poc.entity.Account;
 import com.practice.interview.poc.entity.repo.AccountRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +12,9 @@ import java.util.concurrent.CountDownLatch;
 
 @Service
 public class AccountService {
+
+    @PersistenceContext
+    private EntityManager em;
 
     private final AccountRepository repo;
 
@@ -24,6 +29,30 @@ public class AccountService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public int readBalance(Long id) {
         return repo.findById(id).orElseThrow().getBalance();
+    }
+    /**
+     * READ_COMMITTED → always latest committed value committed by other transaction.
+     * A transaction can only read(see) committed data as latest from other transactions.
+     */
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public int[] readBalanceInSameTxn(Long id) throws InterruptedException { // real use case.
+        System.out.println("Reading balance in a Tx name: "+TransactionSynchronizationManager.getCurrentTransactionName() +"by a thread "+Thread.currentThread().getName());
+        int first = repo.findById(id).orElseThrow().getBalance();
+        System.out.println(Thread.currentThread().getName() +" reads : "+first);
+        System.out.println(Thread.currentThread().getName() +" is sleeping for 5 seconds");
+
+        Thread.sleep(5000);
+
+        em.clear(); // Since the second read happens within the same transaction,
+        // hibernate will return value from first level cache for the second read even though there has been update in the balance from 100 -> 500.
+        //so clearing EM will see the latest committed value.
+        // If the second read happens in another transaction, caching won't apply.
+
+        System.out.println(Thread.currentThread().getName() +" is in-charge now");
+        System.out.println("Reading balance again in a Tx name: "+TransactionSynchronizationManager.getCurrentTransactionName());
+        int second = repo.findById(id).orElseThrow().getBalance();
+        System.out.println(Thread.currentThread().getName() +" reads : "+second);
+        return new int[]{first, second};
     }
 
     /**
@@ -58,7 +87,6 @@ public class AccountService {
         System.out.println(Thread.currentThread().getName() + " waiting on updateDone");
         updateDone.await(); // make T1 wait
         System.out.println("Thread ----->>> "+Thread.currentThread().getName()+" : reading balance again for the account "+id);
-
         int second = repo.findById(id).orElseThrow().getBalance();
         return new int[]{first, second};
     }
@@ -66,8 +94,8 @@ public class AccountService {
     @Transactional
     public void updateBalance(Long id, int newBalance) {
         Account acc = repo.findById(id).orElseThrow();
-        System.out.println("Thread ----->>> "+Thread.currentThread().getName()+" : updating balance for the account "+acc.getId());
         acc.setBalance(newBalance);
+        System.out.println("Thread ----->>> "+Thread.currentThread().getName()+" : updated balance to "+acc.getBalance());
        // printTxInfo();
     }
     private void printTxInfo() {

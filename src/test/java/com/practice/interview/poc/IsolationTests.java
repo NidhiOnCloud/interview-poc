@@ -53,23 +53,22 @@ class IsolationTests {
     }
 
     @Test
-    void testRepeatableWithDelay() throws Exception {
+    void testReadCommittedInsideSameTxn() throws Exception {
 
         Account acc = repo.save(new Account(100));
 
-        Future<int[]> result = executor.submit(() -> service.repeatableRead(acc.getId()));
+        Future<int[]> result = executor.submit(() -> service.readBalanceInSameTxn(acc.getId()));
         Thread.sleep(1000);
-
         System.out.println(Thread.currentThread().getName() +" is updating the balance");
         service.updateBalance(acc.getId(), 500);
 
         int[] values = result.get();
         System.out.println(values[0] + " -> " + values[1]);
-        assertEquals(values[0], values[1]);
+        assertNotEquals(values[0], values[1]);
     }
 
     @Test
-    void testReadCommittedWithWorkers() throws Exception {
+    void testReadCommittedWithTwoDiffReadTxn() throws Exception {
 
         Account acc = repo.save(new Account(100));
 
@@ -119,9 +118,26 @@ class IsolationTests {
         int second = secondValue.get();
 
         System.out.println(first + " -> " + second);
-
         assertNotEquals(first, second);
     }
+
+    @Test
+    void testRepeatableWithDelay() throws Exception {
+
+        Account acc = repo.save(new Account(100));
+
+        Future<int[]> result = executor.submit(() -> service.repeatableRead(acc.getId()));
+        Thread.sleep(1000);
+
+        System.out.println(Thread.currentThread().getName() +" is updating the balance");
+        service.updateBalance(acc.getId(), 500);
+
+        int[] values = result.get();
+        System.out.println(values[0] + " -> " + values[1]);
+        assertEquals(values[0], values[1]);
+    }
+
+
 
     @Test
     void repeatableReadTest() throws Exception {
